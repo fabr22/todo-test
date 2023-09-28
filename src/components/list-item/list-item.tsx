@@ -25,23 +25,33 @@ const ListItem = ({ task, ...props }: IItem) => {
     editingTask(task);
   };
   return (
-    <Space>
-      <div
-        style={{
-          cursor: "pointer",
-          textDecoration: completed ? "line-through" : "none",
-        }}
-      >
-        {description}
-      </div>
-      <div>{new Date(addDate).toLocaleDateString()}</div>
-      <Button onClick={handleAddToCompletedTask}>
-        {completed ? "to do" : "completed"}
-      </Button>
-      <Button onClick={handleEditingTask}>edit</Button>
-      <Button danger onClick={handleDeleteTask}>
-        delete
-      </Button>
+    <Space
+      size={120}
+      style={{
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-between",
+      }}
+    >
+      <Space>
+        <div
+          style={{
+            textDecoration: completed ? "line-through" : "none",
+          }}
+        >
+          {description}
+        </div>
+        <div>{new Date(addDate).toLocaleDateString()}</div>
+      </Space>
+      <Space>
+        <Button onClick={handleAddToCompletedTask}>
+          {completed ? "to do" : "completed"}
+        </Button>
+        <Button onClick={handleEditingTask}>edit</Button>
+        <Button danger onClick={handleDeleteTask}>
+          delete
+        </Button>
+      </Space>
     </Space>
   );
 };

@@ -1,7 +1,7 @@
 import { Header as AntdHeader } from "antd/es/layout/layout";
 import { ITask } from "../../types/tasks";
 
-import { Typography } from "antd";
+import { Space, Typography } from "antd";
 
 const { Text, Title } = Typography;
 const headerStyle: React.CSSProperties = {
@@ -24,8 +24,10 @@ const Header = ({ tasks }: IHeader) => {
   return (
     <AntdHeader style={headerStyle}>
       <Title level={2}>Todo List</Title>
-      <Text>Completed: {completedTasks.length}</Text>
-      <Text>To do: {tasksToComplete}</Text>
+      <Space size={"middle"} style={{ lineHeight: "20px" }}>
+        <Text strong>Completed: {completedTasks.length}</Text>
+        <Text strong>To do: {tasksToComplete}</Text>
+      </Space>
     </AntdHeader>
   );
 };

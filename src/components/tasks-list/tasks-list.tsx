@@ -12,7 +12,7 @@ interface ITasksList {
 const TasksList = (props: ITasksList) => {
   const { tasks, deleteTask, addToCompletedTask, handleEditingTask } = props;
   return (
-    <Space direction="vertical">
+    <Space direction="vertical" style={{ lineHeight: "40px" }}>
       {tasks.map((task: ITask) => {
         return (
           <ListItem

@@ -94,9 +94,7 @@ function App() {
       <Header tasks={tasks} />
       <Content style={contentStyle}>
         <Space direction="vertical">
-          <Button type="primary" onClick={toggleAddModal}>
-            Add new task
-          </Button>
+          <Button onClick={toggleAddModal}>Add new task</Button>
           <AddTaskModal
             openModal={isOpenAddModal}
             closeModal={toggleAddModal}
