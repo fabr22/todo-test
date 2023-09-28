@@ -5,48 +5,72 @@ import dayjs from "dayjs";
 import { ITask } from "../../types/tasks";
 
 interface IEditTaskModal {
-  editTask: (taskToEdit: ITask) => void;
+  editTask: (
+    editingFields: { description: string; date: Date },
+    editingTaskId: string
+  ) => void;
   closeModal: () => void;
   openModal: boolean;
   editingTask: ITask;
 }
 
-const EditTaskModal = ({
-  editTask,
-  closeModal,
-  openModal,
-  editingTask,
-}: IEditTaskModal) => {
-  const [taskDescription, setTaskDescription] = useState("");
+const EditTaskModal = (props: IEditTaskModal) => {
+  const { editingTask, editTask, closeModal, openModal } = props;
 
-  const [date, setDate] = useState<Date>(new Date());
+  const [editingFields, setEditingFileds] = useState({
+    description: editingTask.description,
+    date: editingTask.addDate,
+  });
+  const [emptyDescriptionError, setEmptyDescriptionError] = useState(false);
 
-  console.log(editingTask);
-  const onChangeDescription = (
-    taskDescription: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setTaskDescription(taskDescription.target.value);
+  const onChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmptyDescriptionError(false);
+    if (event.target.value === "") {
+      setEmptyDescriptionError(true);
+    }
+    setEditingFileds((prev) => {
+      return {
+        ...prev,
+        description: event.target.value,
+      };
+    });
   };
 
   const onChangeDate: DatePickerProps["onChange"] = (date) => {
-    setDate(date?.toDate() || new Date());
+    setEditingFileds((prev) => {
+      return { ...prev, date: date?.toDate() || new Date() };
+    });
   };
 
   const onOk = () => {
-    editTask(editingTask);
+    if (!editingFields.description) {
+      setEmptyDescriptionError(true);
+      return;
+    }
+    editTask(editingFields, editingTask.id);
     closeModal();
   };
 
+  const handleClose = () => {
+    setEditingFileds({ date: new Date(), description: "" });
+    setEmptyDescriptionError(false);
+    closeModal();
+  };
   return (
     <Modal
       title="Edit task"
       open={openModal}
-      onCancel={closeModal}
+      onCancel={handleClose}
       footer={[
-        <Button key="back" onClick={closeModal}>
+        <Button key="back" onClick={handleClose}>
           Close
         </Button>,
-        <Button key="submit" type="primary" onClick={onOk}>
+        <Button
+          key="submit"
+          type="primary"
+          onClick={onOk}
+          disabled={emptyDescriptionError && true}
+        >
           Save
         </Button>,
       ]}
@@ -54,16 +78,18 @@ const EditTaskModal = ({
       <p>Description</p>
       <Input
         placeholder="enter a discription"
-        value={taskDescription}
+        value={editingFields.description}
         onChange={onChangeDescription}
-        defaultValue={editingTask.description}
+        status={`${emptyDescriptionError ? "error" : ""}`}
       />
+      {emptyDescriptionError && (
+        <div style={{ color: "red" }}>Please, enter a description</div>
+      )}
       <p>Pick date</p>
       <DatePicker
         onChange={onChangeDate}
         inputReadOnly
-        defaultValue={dayjs(editingTask.addDate)}
-        value={dayjs(date)}
+        value={dayjs(editingFields.date)}
       />
     </Modal>
   );

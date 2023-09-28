@@ -9,53 +9,77 @@ interface IAddTaskModal {
   openModal: boolean;
 }
 
-const AddTaskModal = ({ addNewTask, closeModal, openModal }: IAddTaskModal) => {
-  const [taskDescription, setTaskDescription] = useState("");
-  const [date, setDate] = useState<Date>(new Date());
+const AddTaskModal = (props: IAddTaskModal) => {
+  const { addNewTask, closeModal, openModal } = props;
 
-  const onChangeDescription = (
-    taskDescription: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setTaskDescription(taskDescription.target.value);
+  const [fields, setFields] = useState({ description: "", date: new Date() });
+  const [emptyDescriptionError, setEmptyDescriptionError] = useState(false);
+
+  const onChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmptyDescriptionError(false);
+    if (event.target.value === "") {
+      setEmptyDescriptionError(true);
+    }
+    setFields((prev) => {
+      return { ...prev, description: event.target.value };
+    });
   };
 
   const onChangeDate: DatePickerProps["onChange"] = (date) => {
-    setDate(date?.toDate() || new Date());
+    setFields((prev) => {
+      return { ...prev, date: date?.toDate() || new Date() };
+    });
   };
 
   const onOk = () => {
-    addNewTask(taskDescription, date);
-    setTaskDescription("");
-    setDate(new Date());
+    if (!fields.description) {
+      setEmptyDescriptionError(true);
+      return;
+    }
+    addNewTask(fields.description, fields.date);
+    setFields({ date: new Date(), description: "" });
     closeModal();
   };
 
+  const handleClose = () => {
+    setFields({ date: new Date(), description: "" });
+    setEmptyDescriptionError(false);
+    closeModal();
+  };
   return (
     <Modal
       title="Add new task"
       open={openModal}
-      onCancel={closeModal}
+      onCancel={handleClose}
       footer={[
-        <Button key="back" onClick={closeModal}>
+        <Button key="back" onClick={handleClose}>
           Close
         </Button>,
-        <Button key="submit" type="primary" onClick={onOk}>
+        <Button
+          key="submit"
+          type="primary"
+          onClick={onOk}
+          disabled={emptyDescriptionError && true}
+        >
           Add
         </Button>,
       ]}
     >
       <p>Description</p>
       <Input
-        placeholder="Basic usage"
-        value={taskDescription}
+        placeholder="enter a discription"
+        value={fields.description}
         onChange={onChangeDescription}
+        status={`${emptyDescriptionError ? "error" : ""}`}
       />
+      {emptyDescriptionError && (
+        <div style={{ color: "red" }}>Please, enter a description</div>
+      )}
       <p>Pick date</p>
       <DatePicker
         onChange={onChangeDate}
         inputReadOnly
-        defaultValue={dayjs(new Date())}
-        value={dayjs(date)}
+        value={dayjs(fields.date)}
       />
     </Modal>
   );

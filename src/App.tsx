@@ -8,33 +8,37 @@ import {
   getTasksFromLocalStorage,
   setTasksInLocalStorage,
 } from "./utils/local-storage";
-import ListItem from "./components/list-item/list-item";
+
 import AddTaskModal from "./components/add-task-modal/add-task-modal";
 import EditTaskModal from "./components/edit-task-modal/edit-task-modal";
+import TasksList from "./components/tasks-list/tasks-list";
+
+const contentStyle: React.CSSProperties = {
+  textAlign: "center",
+  minHeight: 120,
+  lineHeight: "120px",
+  color: "#fff",
+  backgroundColor: "#108ee9",
+};
 
 function App() {
   const [tasks, setTasks] = useState<ITask[]>(getTasksFromLocalStorage() || []);
   const [isOpenAddModal, setIsOpenAddModal] = useState(false);
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
-  const [editingTask, setEditingTask] = useState<ITask>({
-    id: "",
-    description: "",
-    completed: false,
-    addDate: new Date(),
-  });
-  const contentStyle: React.CSSProperties = {
-    textAlign: "center",
-    minHeight: 120,
-    lineHeight: "120px",
-    color: "#fff",
-    backgroundColor: "#108ee9",
-  };
+  const [editingTask, setEditingTask] = useState<ITask>();
+
+  useEffect(() => {
+    setTasksInLocalStorage(tasks);
+  }, [tasks]);
 
   const toggleAddModal = () => {
     setIsOpenAddModal((prev) => !prev);
   };
 
   const toggleEditModal = () => {
+    if (isOpenEditModal) {
+      setEditingTask(undefined);
+    }
     setIsOpenEditModal((prev) => !prev);
   };
 
@@ -43,67 +47,50 @@ function App() {
     toggleEditModal();
   };
 
-  useEffect(() => {
-    setTasksInLocalStorage(tasks);
-  }, [tasks]);
-
   const addNewTask = (description: string, addDate: Date) => {
-    if (description === "") {
-      alert("Please, enter a description");
-      return;
-    }
-    if (addDate.getDate() === undefined) {
-      alert("Please, choose add date");
-      return;
-    }
-    const checkOnMatching = tasks.find(
-      (task) =>
-        task?.description?.toLowerCase() === description.toLowerCase() &&
-        task.addDate === addDate
-    );
-
-    return !checkOnMatching
-      ? setTasks([
-          ...tasks,
-          {
-            id: description + addDate.getMilliseconds(),
-            description: description,
-            addDate: addDate,
-            completed: false,
-          },
-        ])
-      : alert("this tasks has been already exist");
+    return setTasks([
+      ...tasks,
+      {
+        id: description + addDate.getMilliseconds(),
+        description: description,
+        addDate: addDate,
+        completed: false,
+      },
+    ]);
   };
 
   const addToCompletedTask = (id: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
+    const updatedList = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
     );
+    setTasks(updatedList);
   };
 
   const deleteTask = (id: string) => {
-    const newTasks = tasks.filter((task) => task.id !== id);
-    setTasks(newTasks);
+    const updatedList = tasks.filter((task) => task.id !== id);
+    setTasks(updatedList);
   };
 
-  const editTask = (taskToEdit: ITask) => {
+  const editTask = (
+    editingFields: { description: string; date: Date },
+    editingTaskId: string
+  ) => {
     setTasks(
       tasks.map((task) =>
-        task.id === taskToEdit.id
+        task.id === editingTaskId
           ? {
               ...task,
-              description: taskToEdit.description,
-              addDate: taskToEdit.addDate,
+              description: editingFields.description,
+              addDate: editingFields.date,
             }
           : task
       )
     );
+    setEditingTask(undefined);
   };
 
   return (
-    <Layout>
+    <Layout style={{ minHeight: "100vh" }}>
       <Header tasks={tasks} />
       <Content style={contentStyle}>
         <Space direction="vertical">
@@ -115,23 +102,20 @@ function App() {
             closeModal={toggleAddModal}
             addNewTask={addNewTask}
           />
-          <EditTaskModal
-            editTask={editTask}
-            closeModal={toggleEditModal}
-            openModal={isOpenEditModal}
-            editingTask={editingTask}
+          {editingTask && (
+            <EditTaskModal
+              editTask={editTask}
+              closeModal={toggleEditModal}
+              openModal={isOpenEditModal}
+              editingTask={editingTask}
+            />
+          )}
+          <TasksList
+            tasks={tasks}
+            addToCompletedTask={addToCompletedTask}
+            deleteTask={deleteTask}
+            handleEditingTask={handleEditingTask}
           />
-          {tasks.map((task: ITask) => {
-            return (
-              <ListItem
-                task={task}
-                key={task.id}
-                deleteTask={deleteTask}
-                addToCompletedTask={addToCompletedTask}
-                editingTask={handleEditingTask}
-              />
-            );
-          })}
         </Space>
       </Content>
     </Layout>
